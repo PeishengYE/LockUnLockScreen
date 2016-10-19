@@ -27,16 +27,12 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
     private DevicePolicyManager deviceManger;
     private ActivityManager activityManager;
     private ComponentName compName;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.activity_lock_screen);
 
         deviceManger = (DevicePolicyManager) getSystemService(
                 Context.DEVICE_POLICY_SERVICE);
@@ -44,7 +40,7 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
                 Context.ACTIVITY_SERVICE);
         compName = new ComponentName(this, MyAdmin.class);
 
-        setContentView(R.layout.main);
+
 
         lock = (Button) findViewById(R.id.lock);
         lock.setOnClickListener(this);
@@ -53,9 +49,6 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
         enable = (Button) findViewById(R.id.btnEnable);
         disable.setOnClickListener(this);
         enable.setOnClickListener(this);
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     @Override
@@ -67,7 +60,7 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
                 deviceManger.lockNow();
             }
         }
-
+         /**/
         if (v == enable) {
             Intent intent = new Intent(DevicePolicyManager
                     .ACTION_ADD_DEVICE_ADMIN);
@@ -114,40 +107,37 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
     public void onStart() {
         super.onStart();
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "LockScreen Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://com.radioyps.lockunlockscreen/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(client, viewAction);
+
+//
+//        Action viewAction = Action.newAction(
+//                Action.TYPE_VIEW, // TODO: choose an action type.
+//                "LockScreen Page", // TODO: Define a title for the content shown.
+//                // TODO: If you have web page content that matches this app activity's content,
+//                // make sure this auto-generated web page URL is correct.
+//                // Otherwise, set the URL to null.
+//                Uri.parse("http://host/path"),
+//                // TODO: Make sure this auto-generated app URL is correct.
+//                Uri.parse("android-app://com.radioyps.lockunlockscreen/http/host/path")
+//        );
+
     }
 
     @Override
     public void onStop() {
         super.onStop();
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "LockScreen Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://com.radioyps.lockunlockscreen/http/host/path")
-        );
-        AppIndex.AppIndexApi.end(client, viewAction);
-        client.disconnect();
+
+//        Action viewAction = Action.newAction(
+//                Action.TYPE_VIEW, // TODO: choose an action type.
+//                "LockScreen Page", // TODO: Define a title for the content shown.
+//                // TODO: If you have web page content that matches this app activity's content,
+//
+//                Uri.parse("http://host/path"),
+//                // TODO: Make sure this auto-generated app URL is correct.
+//                Uri.parse("android-app://com.radioyps.lockunlockscreen/http/host/path")
+//        );
+
+
     }
 }
-}
+
