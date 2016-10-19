@@ -1,20 +1,21 @@
 package com.radioyps.lockunlockscreen;
 
 import android.app.ActivityManager;
+import android.app.KeyguardManager;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
+import android.os.Handler;
+import android.os.Message;
+import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
-
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.common.api.GoogleApiClient;
 
 public class LockScreenActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -27,8 +28,12 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
     private DevicePolicyManager deviceManger;
     private ActivityManager activityManager;
     private ComponentName compName;
-
-
+    private  boolean mStopThreadUpdate = false;
+    private  int mCount = 0;
+    private  PowerManager.WakeLock wakeLock = null;
+    private final static String TAG = LockScreenActivity.class.getName();
+    private Handler mHandler = null;
+    private final int WEAKUP_DEVICE = 0x12;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +54,20 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
         enable = (Button) findViewById(R.id.btnEnable);
         disable.setOnClickListener(this);
         enable.setOnClickListener(this);
+        mHandler = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                    switch (msg.what){
+                        case WEAKUP_DEVICE:
+                            unLockScreen();
+                            Log.i(TAG, "handleMessage()>>  unLockScreen");
+                            break;
+                    }
+
+                }
+           };
+
+
     }
 
     @Override
@@ -58,6 +77,8 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
             boolean active = deviceManger.isAdminActive(compName);
             if (active) {
                 deviceManger.lockNow();
+                releaseWakeLock();
+                startUpdateMessageThread();
             }
         }
          /**/
@@ -89,14 +110,22 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
             disable.setEnabled(false);
         }
     }
+private  void releaseWakeLock(){
+    try{
+        wakeLock.release();
+    }catch (Exception e){
+        Log.e(TAG, "trying to release unlocked wakelock");
+    }
+
+}
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case RESULT_ENABLE:
                 if (resultCode == AppCompatActivity.RESULT_OK) {
-                    Log.i("DeviceAdminSample", "Admin enabled!");
+                    Log.i(TAG, "Admin enabled!");
                 } else {
-                    Log.i("DeviceAdminSample", "Admin enable FAILED!");
+                    Log.i(TAG, "Admin enable FAILED!");
                 }
                 return;
         }
@@ -138,6 +167,55 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
 //        );
 
 
+    }
+
+    private void startUpdateMessageThread(){
+        mStopThreadUpdate = false;
+        mCount = 0;
+        Thread initThread = new Thread(new updateMessageThread());
+        initThread.start();
+    }
+
+    private void unLockScreen(){
+        KeyguardManager km = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+        final KeyguardManager.KeyguardLock kl = km .newKeyguardLock("MyKeyguardLock");
+        WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+         //Unlock
+        //http://developer.android.com/reference/android/app/Activity.html#getWindow()
+        Window window = getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+
+
+        kl.disableKeyguard();
+
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK
+                | PowerManager.ACQUIRE_CAUSES_WAKEUP
+                | PowerManager.ON_AFTER_RELEASE, "MyWakeLock");
+        Log.i(TAG, "unLockSceen()>> acquire the wakelock");
+        wakeLock.acquire();
+    }
+
+    private class updateMessageThread extends Thread {
+        public void run() {
+
+            while (!mStopThreadUpdate) {
+                mCount += 1;
+                Log.i(TAG, "updateMessageThread> run() mCount " + mCount);
+                if(mCount == 10){
+//                    unLockScreen();
+                    Message.obtain(mHandler, WEAKUP_DEVICE,"try wake up device" ).sendToTarget();
+                    mStopThreadUpdate= true;
+                    mCount = 0;
+                }
+                try {
+                    updateMessageThread.sleep(1000);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+
+        }
     }
 }
 
