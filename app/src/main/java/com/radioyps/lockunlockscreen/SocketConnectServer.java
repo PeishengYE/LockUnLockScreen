@@ -1,5 +1,7 @@
 package com.radioyps.lockunlockscreen;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -140,22 +142,24 @@ import java.util.Random;
                         Log.i(TAG, "SocketServerThread()>>  message: " + message);
                         sendMessage(CommonConstants.MSG_UPDATE_CURRENT_CONNECTED_IP, message);
 
-
-                        byte[] buffer = new byte[1024];
-                        int length;
-                        StringBuffer sBuffer = new StringBuffer("");
-                        try {
-                            while ((length = inputStream.read(buffer)) != -1) {
-                                byte[] myBytes = Arrays.copyOfRange(buffer, 0, length);
-                                sBuffer.append(myBytes);
-
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                        String temp, response = "";
+                        try{
+                            while ((temp = bufferedReader.readLine()) != null) {
+                                response += temp;
                             }
-                        } catch (IOException e) {
+                        }catch (Exception e){
                             e.printStackTrace();
                         }
+                       if(response.equalsIgnoreCase(CommonConstants.MSG_TURN_SCREEN_OFF)){
+                           sendMessage(CommonConstants.MSG_TURN_SCREEN_OFF_CMD, response);
+                       }else if(response.equalsIgnoreCase(CommonConstants.MSG_TURN_SCREEN_ON)){
+                           sendMessage(CommonConstants.MSG_TURN_SCREEN_ON_CMD, response);
+                       }
 
-                        Log.i(TAG, "SocketServerThread()>> msg: " +sBuffer.toString());
-                        sendMessage(CommonConstants.MSG_UPDATE_INFO_RECEVIED, sBuffer.toString());
+
+                        Log.i(TAG, "SocketServerThread()>> msg: " +response);
+//                        sendMessage(CommonConstants.MSG_UPDATE_INFO_RECEVIED, response);
 
 
 

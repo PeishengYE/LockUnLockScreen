@@ -66,20 +66,28 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
                 String msgRecevied = null;
                     switch (msg.what){
                         case CommonConstants.MSG_WEAKUP_DEVICE:
-                            unLockScreen();
+                            turnONScreen();
                             Log.i(TAG, "handleMessage()>>  MSG_WEAKUP_DEVICE");
                             break;
                         case CommonConstants.MSG_UPDATE_INFO_RECEVIED:
                             msgRecevied = (String)msg.obj;
                             infoReceived.setText(msgRecevied);
-                            unLockScreen();
+                            turnONScreen();
                             Log.i(TAG, "handleMessage()>>  MSG_UPDATE_INFO_RECEVIED");
                             break;
                         case CommonConstants.MSG_UPDATE_CURRENT_CONNECTED_IP:
                             msgRecevied = (String)msg.obj;
                             curenntConnected.setText(msgRecevied);
-                            unLockScreen();
-                            Log.i(TAG, "handleMessage()>>  MSG_UPDATE_CURRENT_CONNECTED_IP");
+//                            tureOffScreen();
+                            Log.i(TAG, "handleMessage()>>  MSG_UPDATE_CURRENT_CONNECTED_IP ");
+                            break;
+                        case CommonConstants.MSG_TURN_SCREEN_OFF_CMD:
+                            tureOffScreen();
+                            Log.i(TAG, "handleMessage()>> MSG_TURN_SCREEN_OFF_CMD ");
+                            break;
+                        case CommonConstants.MSG_TURN_SCREEN_ON_CMD:
+                            turnONScreen();
+                            Log.i(TAG, "handleMessage()>> MSG_TURN_SCREEN_ON_CMD ");
                             break;
                     }
 
@@ -91,16 +99,20 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
 
     }
 
+    private void tureOffScreen(){
+        boolean active = deviceManger.isAdminActive(compName);
+        if (active) {
+            deviceManger.lockNow();
+            releaseWakeLock();
+           // startUpdateMessageThread();
+        }
+    }
+
     @Override
     public void onClick(View v) {
 
         if (v == lock) {
-            boolean active = deviceManger.isAdminActive(compName);
-            if (active) {
-                deviceManger.lockNow();
-                releaseWakeLock();
-                startUpdateMessageThread();
-            }
+            tureOffScreen();
         }
          /**/
         if (v == enable) {
@@ -163,7 +175,7 @@ private  void releaseWakeLock(){
         initThread.start();
     }
 
-    private void unLockScreen(){
+    private void turnONScreen(){
         KeyguardManager km = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
         final KeyguardManager.KeyguardLock kl = km .newKeyguardLock("MyKeyguardLock");
         WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
@@ -180,6 +192,7 @@ private  void releaseWakeLock(){
                 | PowerManager.ON_AFTER_RELEASE, "MyWakeLock");
         Log.i(TAG, "unLockSceen()>> acquire the wakelock");
         wakeLock.acquire();
+        wakeLock.release();
     }
 
     private class updateMessageThread extends Thread {
