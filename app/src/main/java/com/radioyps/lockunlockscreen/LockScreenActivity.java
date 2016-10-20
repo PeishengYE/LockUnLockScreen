@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class LockScreenActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -32,8 +33,11 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
     private  int mCount = 0;
     private  PowerManager.WakeLock wakeLock = null;
     private final static String TAG = LockScreenActivity.class.getName();
-    private Handler mHandler = null;
-    private final int WEAKUP_DEVICE = 0x12;
+    public static Handler mHandler = null;
+    private TextView curenntConnected = null;
+    private TextView infoReceived = null;
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +49,8 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
                 Context.ACTIVITY_SERVICE);
         compName = new ComponentName(this, MyAdmin.class);
 
-
+        infoReceived = (TextView) findViewById(R.id.msg_received);
+        curenntConnected = (TextView) findViewById(R.id.connected_ip_info);
 
         lock = (Button) findViewById(R.id.lock);
         lock.setOnClickListener(this);
@@ -54,19 +59,35 @@ public class LockScreenActivity extends AppCompatActivity implements View.OnClic
         enable = (Button) findViewById(R.id.btnEnable);
         disable.setOnClickListener(this);
         enable.setOnClickListener(this);
+
         mHandler = new Handler(){
             @Override
             public void handleMessage(Message msg) {
+                String msgRecevied = null;
                     switch (msg.what){
-                        case WEAKUP_DEVICE:
+                        case CommonConstants.MSG_WEAKUP_DEVICE:
                             unLockScreen();
-                            Log.i(TAG, "handleMessage()>>  unLockScreen");
+                            Log.i(TAG, "handleMessage()>>  MSG_WEAKUP_DEVICE");
+                            break;
+                        case CommonConstants.MSG_UPDATE_INFO_RECEVIED:
+                            msgRecevied = (String)msg.obj;
+                            infoReceived.setText(msgRecevied);
+                            unLockScreen();
+                            Log.i(TAG, "handleMessage()>>  MSG_UPDATE_INFO_RECEVIED");
+                            break;
+                        case CommonConstants.MSG_UPDATE_CURRENT_CONNECTED_IP:
+                            msgRecevied = (String)msg.obj;
+                            curenntConnected.setText(msgRecevied);
+                            unLockScreen();
+                            Log.i(TAG, "handleMessage()>>  MSG_UPDATE_CURRENT_CONNECTED_IP");
                             break;
                     }
 
                 }
            };
 
+        Intent intent = new Intent(this, SocketConnectServer.class);
+        startService(intent);
 
     }
 
@@ -132,42 +153,8 @@ private  void releaseWakeLock(){
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
 
 
-//
-//        Action viewAction = Action.newAction(
-//                Action.TYPE_VIEW, // TODO: choose an action type.
-//                "LockScreen Page", // TODO: Define a title for the content shown.
-//                // TODO: If you have web page content that matches this app activity's content,
-//                // make sure this auto-generated web page URL is correct.
-//                // Otherwise, set the URL to null.
-//                Uri.parse("http://host/path"),
-//                // TODO: Make sure this auto-generated app URL is correct.
-//                Uri.parse("android-app://com.radioyps.lockunlockscreen/http/host/path")
-//        );
-
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-
-//        Action viewAction = Action.newAction(
-//                Action.TYPE_VIEW, // TODO: choose an action type.
-//                "LockScreen Page", // TODO: Define a title for the content shown.
-//                // TODO: If you have web page content that matches this app activity's content,
-//
-//                Uri.parse("http://host/path"),
-//                // TODO: Make sure this auto-generated app URL is correct.
-//                Uri.parse("android-app://com.radioyps.lockunlockscreen/http/host/path")
-//        );
-
-
-    }
 
     private void startUpdateMessageThread(){
         mStopThreadUpdate = false;
@@ -180,8 +167,7 @@ private  void releaseWakeLock(){
         KeyguardManager km = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
         final KeyguardManager.KeyguardLock kl = km .newKeyguardLock("MyKeyguardLock");
         WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-         //Unlock
-        //http://developer.android.com/reference/android/app/Activity.html#getWindow()
+
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
 
@@ -203,8 +189,7 @@ private  void releaseWakeLock(){
                 mCount += 1;
                 Log.i(TAG, "updateMessageThread> run() mCount " + mCount);
                 if(mCount == 10){
-//                    unLockScreen();
-                    Message.obtain(mHandler, WEAKUP_DEVICE,"try wake up device" ).sendToTarget();
+                    Message.obtain(mHandler, CommonConstants.MSG_WEAKUP_DEVICE,"try wake up device" ).sendToTarget();
                     mStopThreadUpdate= true;
                     mCount = 0;
                 }

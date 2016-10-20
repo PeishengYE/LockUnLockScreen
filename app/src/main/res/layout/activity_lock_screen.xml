@@ -18,10 +18,48 @@
        android:orientation="vertical"
        android:layout_gravity="center"
        android:gravity="center">
+
+       <LinearLayout
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal"
+           android:gravity="center">
+       <TextView
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:fontFamily="sans-serif-condensed"
+               android:text="Connected IP info: " />
+       <TextView
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:id="@+id/connected_ip_info"
+           android:text="NONE"
+           android:autoLink="all"
+           />
+       </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Lock unLock screen" />
+        android:fontFamily="sans-serif-condensed"
+        android:text="Recevied Mesg: " />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/msg_received"
+        android:text="NONE"
+        android:autoLink="all"
+        />
+</LinearLayout>
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
